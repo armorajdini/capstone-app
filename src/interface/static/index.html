@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3LandSpiel - Spielliniengenerator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --light: #ecf0f1;
+            --danger: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: var(--primary);
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        h2 { border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-top: 0; }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        .btn-secondary { background-color: var(--secondary); }
+        .btn-secondary:hover { background-color: var(--primary); }
+
+        #result, #library {
+            margin-top: 1rem;
+        }
+
+        .station-item {
+            border-left: 4px solid var(--accent);
+            background: #f9f9f9;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            display: none;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .library-item {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .library-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: var(--accent);
+        }
+
+        .result-meta {
+            background: #f1f1f1;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>3LandSpiel Spielliniengenerator</h1>
+    <p>Enterprise AI-Assisted Educational Content</p>
+</header>
+
+<main>
+    <section class="card">
+        <h2>Neue Spiellinie generieren</h2>
+        <form id="generateForm">
+            <div class="form-group">
+                <label for="user_name">Dein Name</label>
+                <input type="text" id="user_name" required placeholder="z.B. Herr Schmidt">
+            </div>
+            <div class="form-group">
+                <label for="zielgruppe">Zielgruppe</label>
+                <select id="zielgruppe">
+                    <option value="Primarschule">Primarschule</option>
+                    <option value="Sekundarschule">Sekundarschule</option>
+                    <option value="Gymnasium">Gymnasium</option>
+                    <option value="Erwachsene">Erwachsene</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="thema">Thema</label>
+                <input type="text" id="thema" required placeholder="z.B. Biodiversität am Oberrhein">
+            </div>
+            <div class="form-group">
+                <label for="lernziele">Lernziele (kommagetrennt)</label>
+                <textarea id="lernziele" rows="2" placeholder="z.B. Artenkenntnis, Ökosystem verstehen"></textarea>
+            </div>
+            <button type="submit" id="submitBtn">Generieren</button>
+        </form>
+
+        <div id="loading" class="loading">KI generiert Spiellinie... Bitte warten...</div>
+        <div id="error" class="error"></div>
+
+        <div id="result" style="display:none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin:0;">Aktuelle Spiellinie:</h3>
+                <button class="btn-secondary" onclick="exportToMarkdown()">Als Markdown exportieren (.md)</button>
+            </div>
+            <div id="resultContent"></div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Bibliothek</h2>
+        <div class="search-box">
+            <input type="text" id="librarySearch" placeholder="Suchen nach Thema oder Autor..." onkeyup="filterLibrary()">
+            <button onclick="loadLibrary()">🔄</button>
+        </div>
+        <div id="libraryList" class="library-grid">
+            <!-- Library items will appear here -->
+        </div>
+    </section>
+</main>
+
+<script>
+    const form = document.getElementById('generateForm');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const result = document.getElementById('result');
+    const resultContent = document.getElementById('resultContent');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let currentSpiellinie = null;
+    let fullLibraryData = [];
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        result.style.display = 'none';
+        submitBtn.disabled = true;
+
+        const payload = {
+            user_name: document.getElementById('user_name').value,
+            zielgruppe: document.getElementById('zielgruppe').value,
+            thema: document.getElementById('thema').value,
+            lernziele: document.getElementById('lernziele').value.split(',').map(s => s.trim()).filter(s => s !== "")
+        };
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Fehler bei der Generierung');
+            }
+
+            currentSpiellinie = data;
+            renderResult(data);
+            loadLibrary();
+        } catch (err) {
+            error.innerText = err.message;
+            error.style.display = 'block';
+        } finally {
+            loading.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    };
+
+    function renderResult(data) {
+        result.style.display = 'block';
+        // Scroll to result
+        result.scrollIntoView({ behavior: 'smooth' });
+
+        let html = `
+            <div class="result-meta">
+                <div><strong>Thema:</strong> ${data.thema.titel}</div>
+                <div><strong>Zielgruppe:</strong> ${data.zielgruppe.name}</div>
+                <div><strong>Erstellt von:</strong> ${data.ersteller.name}</div>
+                <div><strong>Schule:</strong> ${data.ersteller.schule}</div>
+            </div>
+            <p><strong>KI-Inhalt:</strong></p>
+            <div style="white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--success);">${data.inhalt}</div>
+            <h4>Stationen:</h4>
+        `;
+        
+        data.stationen.forEach(s => {
+            html += `
+                <div class="station-item">
+                    <strong>${s.name}</strong> (${s.ort})<br>
+                    <small>Aufgabe: ${s.aufgabe}</small>
+                </div>
+            `;
+        });
+
+        resultContent.innerHTML = html;
+    }
+
+    async function loadSpiellinieDetail(id) {
+        try {
+            const response = await fetch(`/library/${id}`);
+            if (!response.ok) throw new Error('Detail konnte nicht geladen werden');
+            
+            const data = await response.json();
+            currentSpiellinie = data;
+            renderResult(data);
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function exportToMarkdown() {
+        if (!currentSpiellinie) return;
+        
+        const d = currentSpiellinie;
+        let md = `# Spiellinie: ${d.thema.titel}\n\n`;
+        md += `**Zielgruppe:** ${d.zielgruppe.name}\n`;
+        md += `**Erstellt von:** ${d.ersteller.name} (${d.ersteller.schule})\n\n`;
+        md += `## Einleitung / Inhalt\n${d.inhalt}\n\n`;
+        md += `## Lernziele\n`;
+        d.lernziele.forEach(lz => md += `- ${lz}\n`);
+        md += `\n## Stationen\n\n`;
+        d.stationen.forEach((s, i) => {
+            md += `### Station ${i+1}: ${s.name}\n`;
+            md += `- **Ort:** ${s.ort}\n`;
+            md += `- **Aufgabe:** ${s.aufgabe}\n\n`;
+        });
+
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Spiellinie_${d.thema.titel.replace(/\s+/g, '_')}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    async function loadLibrary() {
+        const list = document.getElementById('libraryList');
+        try {
+            const response = await fetch('/library');
+            fullLibraryData = await response.json();
+            renderLibrary(fullLibraryData);
+        } catch (err) {
+            console.error('Library failed to load', err);
+        }
+    }
+
+    function renderLibrary(data) {
+        const list = document.getElementById('libraryList');
+        list.innerHTML = data.map(item => `
+            <div class="library-item" onclick="loadSpiellinieDetail('${item.id}')">
+                <strong>${item.thema}</strong><br>
+                <small>${item.zielgruppe} | ${item.ersteller}</small><br>
+                <small>${item.anzahl_stationen} Stationen</small>
+            </div>
+        `).join('');
+    }
+
+    function filterLibrary() {
+        const term = document.getElementById('librarySearch').value.toLowerCase();
+        const filtered = fullLibraryData.filter(item => 
+            item.thema.toLowerCase().includes(term) || 
+            item.ersteller.toLowerCase().includes(term)
+        );
+        renderLibrary(filtered);
+    }
+
+    loadLibrary();
+</script>
+
+</body>
+</html>

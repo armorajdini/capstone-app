@@ -1,22 +1,22 @@
 import os
+from pathlib import Path
 
-class Config:
-    APP_TITLE = "3LandSpiel Spielliniengenerator MVP"
-    VERSION = "1.0.0"
-    ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-    
-    # Guardrail Settings
-    MIN_THEMA_LENGTH = 5
-    MIN_OUTPUT_LENGTH = 50
-    
-    BLACKLIST_TOPICS = [
-        "waffen", "gewalt", "drogen", "porno", "extremismus", 
-        "hass", "mobbing", "suizid", "selbstverletzung"
-    ]
-    
-    ALLOWED_ZIELGRUPPEN = [
-        "primarschule", "sekundarschule", "gymnasium", 
-        "erwachsene", "familien", "jugendliche"
-    ]
+# Absoluter Pfad zum Projekt-Root
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-settings = Config()
+class Settings:
+    # API Einstellungen
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "3LandSpiel - AI Spielliniengenerator")
+    API_V1_STR: str = "/api/v1"
+    
+    # Datenbank Einstellungen
+    # Wir nutzen einen absoluten Pfad, damit die DB immer im Root gefunden wird.
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/3landspiel_v2.db")
+
+    # Business Logic / Guardrail Einstellungen
+    BLACKLIST_TOPICS: list = ["drogen", "waffen", "gewalt", "politik", "extremismus"]
+    ALLOWED_ZIELGRUPPEN: list = ["primarschule", "sekundarschule", "gymnasium", "erwachsene"]
+    MIN_THEMA_LENGTH: int = 3
+    MIN_OUTPUT_LENGTH: int = 10
+
+settings = Settings()

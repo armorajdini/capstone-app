@@ -1,52 +1,47 @@
-# KI-gestützter Spielliniengenerator für das 3LandSpiel (MVP)
+# KI-gestützter Spielliniengenerator für das 3LandSpiel (Extended MVP)
 
 ## 1. Projektübersicht & Scope
-Dieses Projekt dient als **MVP (Minimum Viable Product)** zur automatisierten Generierung von Spiellinien für das "3LandSpiel". 
+Dieses Projekt dient als **erweiterter Prototyp** zur automatisierten Generierung und Verwaltung von Spiellinien für das "3LandSpiel". 
 
-### Wichtige Scope-Abgrenzung:
-- **Interaction:** Die Interaktion erfolgt ausschliesslich über die **FastAPI Swagger UI** (`/docs`). Ein Web-Frontend ist für diesen Prototypen **Out-of-Scope**.
-- **Persistenz:** Eine Datenbank-Persistenz ist in diesem initialen MVP **nicht implementiert**. Generierte Spiellinien werden flüchtig verarbeitet und direkt zurückgegeben.
-- **LLM:** Zur Demonstration wird ein **Mock-LLM** verwendet, welches plausible Ergebnisse basierend auf den Eingabeparametern simuliert.
-
-**Kern-Use-Case (UC-001):**
-- Eingabe von Zielgruppe (z.B. Primarschule) und Thema (z.B. Rhein-Ökologie).
-- Automatisierte Prüfung und Anreicherung des Prompts durch einen **Guardrail-Layer**.
-- Generierung und Rückgabe der Spiellinie als strukturierte API-Antwort.
+### Kern-Features:
+- **Web-GUI:** Intuitive Weboberfläche zur Generierung und Einsicht von Spiellinien.
+- **7-Entitäten-Modell:** Vollständige Abbildung von Usern, Zielgruppen, Themen, Spiellinien, Stationen, Aufgaben und Lernzielen.
+- **Guardrail-Layer:** Automatisierte Prüfung und Anreicherung der Prompts zur Sicherstellung didaktischer Qualität und Sicherheit.
+- **Persistence:** Relationale Speicherung aller generierten Spiellinien in einer SQLite-Datenbank via SQLAlchemy ORM.
+- **Library-Funktion:** Abruf und Einsicht aller gespeicherten Spiellinien über einen dedizierten API-Endpunkt.
 
 ## 2. Architektur (Clean Architecture)
-Der Code ist strikt nach der **Clean Architecture** organisiert, um Geschäftslogik von technischer Infrastruktur zu trennen:
+Das Projekt folgt strikt der **Clean Architecture**:
 
-- **Domain Layer (`src/domain`):** Enthält Core-Entities (`Spiellinie`) und Value Objects. Definiert die Schnittstellen (Interfaces) für externe Dienste.
-- **Application Layer (`src/application`):** Orchestriert die Use-Cases und enthält den **Guardrail-Service** (Input-Validierung, Prompt-Enrichment, Output-Verifizierung).
-- **Interface Layer (`src/interface`):** Stellt die REST-API mittels FastAPI bereit.
-- **Infrastructure Layer (`src/infrastructure`):** Beinhaltet die Konfiguration (`config.py`) und den LLM-Adapter (Mock-LLM).
+- **Domain Layer (`src/domain`):** Enthält die 7 Kern-Entities und definiert die Schnittstellen für Generierung und Persistenz.
+- **Application Layer (`src/application`):** Beinhaltet die Use Cases (`GenerateSpiellinie`, `GetSpiellinieLibrary`) und den Guardrail-Service.
+- **Interface Layer (`src/interface`):** REST-API mittels FastAPI (Swagger UI unter `/docs`) und Web-GUI (ausgeliefert via `/`).
+- **Infrastructure Layer (`src/infrastructure`):** Datenbank-Konfiguration (SQLite/ORM) und LLM-Adapter (Mock-LLM).
 
 ## 3. Setup & Ausführung
 
-### Start via Docker
+### Lokal starten
 ```bash
-docker build -t capstone-app .
-docker run -p 8000:8000 capstone-app
+# Abhängigkeiten installieren
+pip install -r requirements.txt
+
+# App starten
+python -m src.main
 ```
-Anschliessend: [http://localhost:8000/docs](http://localhost:8000/docs)
+Anschliessend: 
+- **Web-GUI:** [http://localhost:8000](http://localhost:8000)
+- **API-Docs (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ### Test-Pyramide
 ```bash
-# Unit & Integration
-export PYTHONPATH=$PYTHONPATH:. && pytest tests/unit tests/integration
-
-# E2E (erfordert laufende App)
-pytest tests/e2e/test_e2e.py
+# Alle Tests ausführen
+pytest
 ```
 
-## 4. AI-SDLC Workflow
-Dieses Projekt folgt einem **AI-Assisted Lean SDLC**. 
-**Hinweis zu Platzhaltern:** Im Verzeichnis `skills/` oder unter `docs/` befindliche, nahezu leere Markdown-Dateien (z.B. `SKILL.md`) dienen bewusst als **strukturelle Platzhalter**. Sie demonstrieren das Konzept des "Progressive Disclosure" für Agentic AI – die Struktur ist definiert, der Inhalt wird bei Bedarf durch spezialisierte Agenten expandiert.
-
-Phasen:
-- **0-BOOTSTRAP:** Initialisierung der Projektstruktur.
-- **1-SPECIFY:** Anforderungsdefinition (`docs/specs/`).
-- **2-DESIGN:** Architektur-Blueprint (`docs/DESIGN.md`).
-- **3-DEVELOP:** TDD-Implementierung (Red-Green-Refactor).
-- **4-VALIDATE:** Qualitätssicherung via Test-Pyramide.
-- **5-DEPLOY:** Containerisierung und CI/CD-Setup.
+## 4. Datenmodell (ER-Diagramm Logik)
+Das System verwaltet folgende Relationen:
+- Ein **User** erstellt mehrere **Spiellinien**.
+- Eine **Spiellinie** ist verknüpft mit einer **Zielgruppe** und einem **Thema**.
+- Eine **Spiellinie** besteht aus mehreren **Stationen**.
+- Jede **Station** hat genau eine **Aufgabe**.
+- Eine **Spiellinie** kann mehrere **Lernziele** verfolgen.

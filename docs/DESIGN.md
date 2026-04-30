@@ -1,65 +1,50 @@
-# Software-Architektur: KI-gestützter Spielliniengenerator
+# Software-Architektur: 3LandSpiel Spielliniengenerator (Extended)
 
 ## 1. Clean Architecture Mapping
 
-Die Anwendung folgt dem Prinzip der Clean Architecture, um die Geschäftslogik von technischen Details zu entkoppeln.
-
 ### Domain Layer (Kern)
-*   **Entities:** `Spiellinie` (Repräsentiert das generierte Ergebnis).
-*   **Value Objects:** `Zielgruppe`, `Thema`, `Prompt`.
-*   **Interfaces:** `ISpiellinienGenerator` (Port für das LLM), `IGuardrailService` (Port für Sicherheitsprüfungen).
+- **Entities (7):** `User`, `Zielgruppe`, `Thema`, `Spiellinie`, `Station`, `Aufgabe`, `Lernziel`.
+- **Interfaces:** `ISpiellinienGenerator`, `IGuardrailService`, `ISpiellinieRepository`.
 
 ### Application Layer (Use Cases)
-*   **Use Case:** `GenerateSpiellinie` koordiniert den Ablauf.
-*   **Guardrail-Layer:** Hier liegt die Implementierung der Sicherheits- und Didaktik-Logik. Sie stellt sicher, dass Eingaben validiert und Prompts angereichert werden, bevor sie den Domain-Kern verlassen.
-*   **DTOs:** `GenerateSpiellinieRequest`, `SpiellinieResponse`.
+- **Use Cases:** 
+    - `GenerateSpiellinie`: Orchestriert Validierung, Generierung und Persistenz.
+    - `GetSpiellinieLibrary`: Verwaltet den Zugriff auf die Datenbank-Historie.
+- **Services:** `GuardrailService` zur Absicherung von Input und Output.
 
 ### Interface Layer (Adapters)
-*   **Web API:** FastAPI Controller, die HTTP-Requests in Application-Calls übersetzen.
-*   **CLI:** (Optional) Ein Kommandozeilen-Interface für Administratoren.
+- **API:** FastAPI mit Pydantic-Validierung. Stellt Swagger-Dokumentation bereit.
 
 ### Infrastructure Layer (External Agency)
-*   **LLM Adapter:** Konkrete Implementierung für OpenAI, Anthropic oder lokale Modelle.
-*   **Persistence:** PostgreSQL via SQLAlchemy für das Speichern generierter Spiellinien.
-*   **Logging/Monitoring:** Tracking von Guardrail-Verstößen.
+- **Persistence:** SQLite mit **SQLAlchemy ORM**.
+- **Generator:** `MockLLMGenerator` zur stabilen Simulation der KI-Antworten.
 
 ---
 
-## 2. Der Guardrail-Layer
+## 2. Relationales Datenmodell (ORM)
 
-Der **Guardrail-Layer** ist als Service innerhalb der **Application-Schicht** platziert. Er fungiert als "Torwächter" (Gatekeeper) zwischen dem Benutzer-Input und dem LLM-Aufruf.
-
-### Funktionsweise
-1.  **Input Validation:** Prüfung auf schädliche Inhalte oder unzulässige Themen (Blacklisting).
-2.  **Context Injection:** Anreicherung des Benutzer-Prompts mit einem "System-Prompt", der die didaktischen Leitplanken (z.B. "Du bist ein Experte für Erlebnispädagogik im 3Land...") definiert.
-3.  **Output Verification:** Prüfung der LLM-Antwort auf Konsistenz und Einhaltung der Formate (z.B. JSON-Struktur) vor der Rückgabe an das UI.
-
-Dies kapselt das Risiko, da das LLM niemals "rohe" Benutzerdaten erhält und die Antwort einer finalen Qualitätskontrolle unterliegt.
+Das System nutzt ein relationales Schema, um die pädagogische Komplexität abzubilden:
+- **One-to-Many:** Ein `User` kann viele `Spiellinien` besitzen.
+- **One-to-Many:** Eine `Spiellinie` hat mehrere `Stationen`.
+- **One-to-One:** Jede `Station` ist fest mit einer `Aufgabe` verknüpft.
+- **Many-to-Many:** `Spiellinien` und `Lernziele` sind über eine Verknüpfungstabelle verbunden.
+- **Foreign Keys:** `Spiellinie` referenziert eindeutige `Thema`- und `Zielgruppe`-Einträge.
 
 ---
 
-## 3. Tech-Stack
+## 3. Der Guardrail-Layer
 
-*   **Backend:** Python 3.11+ mit **FastAPI**.
-*   **KI-Orchestrierung:** **LangChain** oder **Semantic Kernel** zur Verwaltung der Guardrail-Chains.
-*   **Datenbank:** **PostgreSQL** mit **SQLAlchemy** (Core & ORM).
-*   **Migrationen:** **Alembic**.
-*   **Validation:** **Pydantic v2**.
-*   **Deployment:** **Docker** & Docker Compose.
+Der **Guardrail-Layer** schützt die Integrität der Anwendung:
+1. **Input Validation:** Abgleich des Themas gegen eine konfigurierbare Blacklist (Waffen, Gewalt, etc.).
+2. **Prompt Enrichment:** Automatisches Hinzufügen von System-Instruktionen und Kontext zur Zielgruppe.
+3. **Output Verification:** Scan der KI-Antwort auf unzulässige Begriffe vor der Speicherung.
 
 ---
 
-## 4. Test-Strategie (Test-Pyramide)
+## 4. Tech-Stack
 
-### Unit Tests
-*   Fokus: Einzelne Logik-Bausteine des Guardrail-Layers (z.B. Prompt-Template-Generierung).
-*   Tool: `pytest`.
-
-### Integration Tests
-*   Fokus: Zusammenspiel von Application Layer und Infrastructure (z.B. Persistenz in Test-DB).
-*   Mocking: LLM-Antworten werden hier gemockt, um Kosten und Flakiness zu vermeiden.
-
-### E2E Tests
-*   Fokus: Vollständiger Durchlauf vom API-Endpoint bis zur (simulierten) KI-Antwort.
-*   Strategie: Verwendung von **VCR.py** oder **HTTPX**, um reale LLM-Interaktionen für Regressionstests aufzuzeichnen und wiederzugeben.
-*   Validierung der UI-Sichtbarkeit des Ergebnisses.
+- **Sprache:** Python 3.12
+- **Web-Framework:** FastAPI & Uvicorn
+- **ORM:** SQLAlchemy 2.0
+- **Datenbank:** SQLite (Lokal)
+- **Testing:** Pytest & HTTPX TestClient
