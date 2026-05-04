@@ -5,4 +5,5 @@ pytest
 httpx
 pytest-asyncio
 sqlalchemy
+psycopg2-binary
 aiofiles

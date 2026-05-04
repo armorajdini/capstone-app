@@ -10,8 +10,13 @@ class Settings:
     API_V1_STR: str = "/api/v1"
     
     # Datenbank Einstellungen
-    # Wir nutzen einen absoluten Pfad, damit die DB immer im Root gefunden wird.
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/3landspiel_v2.db")
+    _db_url = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/3landspiel_v2.db")
+    
+    # SQLAlchemy braucht 'postgresql://' statt 'postgres://' (falls Render das so liefert)
+    if _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    
+    DATABASE_URL: str = _db_url
 
     # Business Logic / Guardrail Einstellungen
     BLACKLIST_TOPICS: list = ["drogen", "waffen", "gewalt", "politik", "extremismus"]
