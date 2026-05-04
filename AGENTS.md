@@ -3,6 +3,9 @@ AI-Assisted Lean SDLC with Clean Architecture, TDD & CI/CD.
 
 CURRENT PHASE: Load from docs/TASKS.md
 
+## Letzte Aktivitäten
+- **2026-05-04:** Erfolgreicher Cloud-Deployment Sprint. Neon Postgres & Render Integration abgeschlossen. (Siehe `docs/SPRINT_LOG_2026_05_04.md`)
+
 ## Workflow Phases
 0. BOOTSTRAP: Project Initialization (skills/ai-sdlc-0-bootstrap)
 1. SPECIFY: Define requirements (skills/ai-sdlc-1-specify)
