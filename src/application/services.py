@@ -30,9 +30,10 @@ class GuardrailService(IGuardrailService):
             f"didaktisch wertvolle und spannende Spiellinien zu entwerfen.\n"
             f"ZIELGRUPPE: {zielgruppe.name}\n"
             f"THEMA: {thema.titel}\n\n"
-            f"ANWEISUNG: Erstelle eine Spiellinie mit 3 Phasen (Start, Aktivität, Abschluss). "
+            f"ANWEISUNG: Erstelle eine detaillierte Spiellinie mit 3 Phasen (Start, Aktivität, Abschluss). "
             f"Beziehe lokale Gegebenheiten des Rheins oder des 3Land-Areals ein. "
-            f"Verwende eine Sprache, die für {zielgruppe.name} angemessen ist."
+            f"Verwende eine Sprache, die für {zielgruppe.name} angemessen ist. "
+            f"Strukturiere die Antwort klar mit Überschriften (z.B. Phase 1: ...) und Aufzählungspunkten."
         )
         return Prompt(text=prompt_text)
 

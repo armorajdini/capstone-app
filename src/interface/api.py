@@ -8,6 +8,7 @@ import os
 from src.application.use_cases import GenerateSpiellinie, GetSpiellinieLibrary, GetSpiellinieDetail
 from src.application.services import GuardrailService
 from src.infrastructure.mock_llm import MockLLMGenerator
+from src.infrastructure.llm import LiteLLMGenerator
 from src.infrastructure.database import SessionLocal, engine, Base, get_db
 from src.infrastructure.repositories import SqlAlchemySpiellinieRepository
 from src.infrastructure.config import settings
@@ -32,7 +33,11 @@ class GenerateRequest(BaseModel):
 
 @app.post("/generate")
 def generate_spiellinie(request: GenerateRequest, db: Session = Depends(get_db)):
-    generator = MockLLMGenerator()
+    if settings.USE_MOCK_LLM:
+        generator = MockLLMGenerator()
+    else:
+        generator = LiteLLMGenerator()
+        
     guardrail = GuardrailService()
     repository = SqlAlchemySpiellinieRepository(db)
     use_case = GenerateSpiellinie(generator=generator, guardrail=guardrail, repository=repository)

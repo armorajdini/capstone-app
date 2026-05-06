@@ -41,3 +41,11 @@ Die Umsetzung erfolgt in vier iterativen Meilensteinen, welche die noch fehlende
 - [x] Task 4.1: Frontend API-Verknüpfung getestet.
 - [x] Task 4.2: Testsuite (E2E/Integration) erweitert.
 - [x] Task 4.3: README.md aktualisiert.
+
+### Meilenstein 5: Real LLM Integration 🔄
+*Status: In Arbeit*
+- [x] Task 5.1: LiteLLM & Dotenv Abhängigkeiten hinzugefügt.
+- [x] Task 5.2: `LiteLLMGenerator` implementiert.
+- [x] Task 5.3: Konfiguration für API-Key und Base-URL erweitert.
+- [ ] Task 5.4: System Prompt verfeinern (optional).
+- [ ] Task 5.5: Integration mit echtem API-Key testen.

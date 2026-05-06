@@ -1,8 +1,12 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Absoluter Pfad zum Projekt-Root
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Lade .env Datei falls vorhanden
+load_dotenv(BASE_DIR / ".env", override=True)
 
 class Settings:
     # API Einstellungen
@@ -23,5 +27,11 @@ class Settings:
     ALLOWED_ZIELGRUPPEN: list = ["primarschule", "sekundarschule", "gymnasium", "erwachsene"]
     MIN_THEMA_LENGTH: int = 3
     MIN_OUTPUT_LENGTH: int = 10
+
+    # LLM Einstellungen (LiteLLM)
+    USE_MOCK_LLM: bool = os.getenv("USE_MOCK_LLM", "True").lower() == "true"
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-3.5-turbo")
+    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "sk-1234")
+    LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 
 settings = Settings()
