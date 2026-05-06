@@ -24,6 +24,8 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run tests (Pytest)
+      env:
+        USE_MOCK_LLM: "True"
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest tests/

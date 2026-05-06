@@ -7,5 +7,4 @@ pytest-asyncio
 sqlalchemy
 psycopg2-binary
 aiofiles
-litellm
 python-dotenv
