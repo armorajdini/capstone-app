@@ -29,7 +29,8 @@ class Settings:
     MIN_OUTPUT_LENGTH: int = 10
 
     # LLM Einstellungen (LiteLLM)
-    USE_MOCK_LLM: bool = os.getenv("USE_MOCK_LLM", "True").lower() == "true"
+    # Wir lesen erst aus der Umgebung, dann aus der .env
+    USE_MOCK_LLM: bool = os.getenv("USE_MOCK_LLM", "True").lower() in ("true", "1", "yes")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-3.5-turbo")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "sk-1234")
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
