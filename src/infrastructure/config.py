@@ -30,7 +30,9 @@ class Settings:
 
     # LLM Einstellungen (LiteLLM)
     # Wir lesen erst aus der Umgebung, dann aus der .env
-    USE_MOCK_LLM: bool = os.getenv("USE_MOCK_LLM", "True").lower() in ("true", "1", "yes")
+    # WICHTIG: Wir prüfen explizit auf "true", damit "False" (String) korrekt als False (Bool) gewertet wird
+    _use_mock_str = os.getenv("USE_MOCK_LLM", "True").lower()
+    USE_MOCK_LLM: bool = _use_mock_str in ("true", "1", "yes")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-3.5-turbo")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "sk-1234")
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
